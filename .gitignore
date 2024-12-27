@@ -1,2 +1,5 @@
 .idea
-*/_pycache_/
+*.pyc
+__pycache__/
+.venv/
+.env/
