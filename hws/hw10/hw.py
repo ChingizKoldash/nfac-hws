@@ -33,6 +33,7 @@ def divide(a, b):
         return None
     return a / b
 
+
     pass
 
 """
@@ -45,6 +46,8 @@ my_map(lambda x: x**2, [1, 2, 3, 4]) -> [1, 4, 9, 16]
 
 def my_map(func, my_list: list) -> list:
     return [func(item) for item in my_list]
+
+
     pass
 
 """
@@ -57,6 +60,8 @@ filter_even_numbers([1, 2, 3, 4, 5, 6, 7, 8]) -> [1, 3, 5, 7]
 
 def filter_even_numbers(numbers: list) -> list:
     return list(filter(lambda x: x % 2 != 0,numbers))
+
+
     pass
 
 """
@@ -72,6 +77,8 @@ def recursive_factorial(n: int) -> int:
         return 1
     else:
         return n * recursive_factorial(n -1)
+    
+
     pass
 
 """
@@ -88,18 +95,15 @@ def timeit_decorator(func):
 
     def wrapper(*args, **kwargs):
         start_time = time.time()
-
         result = func(*args, **kwargs)
-
         end_time = time.time()
-
         time_taken = end_time - start_time
-        
         print(f"Function '{func.__name__}' executed in {time_taken:.6f} seconds")
         
         return result
     
     return wrapper
+
 
 @timeit_decorator
 def sample_func():
@@ -123,13 +127,14 @@ def compose(*funcs):
     def wrap (x):
         for func in funcs:
             x = func(x)
-    
-        return x
-    
+        return x   
     return wrap
  
+
 def plus_one(x):
     return x + 1
+
+
 def double(x):
     return x * 2 
     pass
@@ -146,11 +151,10 @@ add_five_and_six(7) -> 18
 """
 
 def partial(func, *args):
-
     def wrapper (*nargs):
         return func(*args,*nargs)
-    
     return wrapper
+
 
 def multiply_three_numbers(a, b, c):
     return a * b * c
@@ -167,8 +171,9 @@ factorial_reduce(5) -> 120
 def factorial_reduce(n: int) -> int:
     def multiply (x, y):
         return x * y
-    
     return reduce(multiply, range(1, n + 1), 1)
+
+
     pass
 
 """
@@ -185,9 +190,8 @@ memoized_function(5)  # -> This will return the cached result
 
 def memoize(func):
     cache = {}
-
+    
     def wrapper (*args):
-        
         if args in cache:
             return cache[args]
         else:
@@ -196,6 +200,7 @@ def memoize(func):
             return result
 
     return wrapper 
+
 
     pass
 
@@ -234,6 +239,8 @@ sort_by_last_letter(['apple', 'banana', 'cherry', 'date']) -> ['banana', 'apple'
 
 def sort_by_last_letter(words: list) -> list:
     return sorted(words, key=lambda word: word[-1])
+
+
     pass
 
 """
@@ -249,6 +256,8 @@ def recursive_reverse(my_list: list) -> list:
         return my_list
     else:
         return recursive_reverse(my_list[1:]) + [my_list[0]]
+    
+
     pass
 
 """
@@ -273,8 +282,9 @@ def count_calls(func):
         result = func(*args)  # Call the original function
         print(f"'{func.__name__}' was called {count } times.")
         return result 
-    
     return wrapper
+
+
     pass
 
 """
@@ -287,6 +297,8 @@ find_max([1, 2, 3, 4, 5]) -> 5
 
 def find_max(numbers: list) -> int:
     return reduce(max,numbers)
+
+
     pass
 
 """
@@ -299,6 +311,8 @@ remove_elements([1, 2, 3, 2, 4, 2, 5], 2) -> [1, 3, 4, 5]
 
 def remove_elements(my_list: list, element):
     return list(filter (lambda x: x!= element,my_list))
+
+
     pass
 
 """
@@ -314,6 +328,8 @@ def repeat(n: int):
     def call_repeat(s: str):
         return n * s
     return call_repeat
+
+
     pass
 
 """
@@ -329,6 +345,8 @@ def recursive_sum(my_list: list) -> int:
         return 0
     else:
         return my_list[0] + recursive_sum(my_list[1:])
+    
+
     pass
 
 """
@@ -341,4 +359,6 @@ add_two_lists([1, 2, 3], [4, 5, 6]) -> [5, 7, 9]
 
 def add_two_lists(list1: list, list2: list) -> list:
     return list(map(lambda x, y: x + y, list1, list2))
+
+
     pass
