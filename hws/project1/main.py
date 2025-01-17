@@ -94,7 +94,7 @@ def main():
     else : 
         print_ascii_art(args.text, ascii_art_dict, args.color, args.letters) 
      
- 
+ #example of run command python3 main.py hello shadow l --output=file.txt --color=red
          
 if __name__ == "__main__": 
     main()
