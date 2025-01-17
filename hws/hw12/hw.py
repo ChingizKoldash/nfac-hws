@@ -8,7 +8,7 @@ Example:
 squares(5) -> [0, 1, 4, 9, 16]
 """
 def squares(n: int):
-    return [i**2 for i in range(0,n+1)]
+    return [i**2 for i in range(0,n)]
 
 """
 Exercise-2: Set Comprehension with Filtering
@@ -49,7 +49,7 @@ Example:
 list(squares_gen(5)) -> [0, 1, 4, 9, 16]
 """
 def squares_gen(n: int) -> Generator[int, None, None]:
-    for i in range(n+1):
+    for i in range(n):
         yield i ** 2
 
 """

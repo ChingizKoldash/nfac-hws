@@ -4,7 +4,7 @@ import hw
 class TestFunctions(unittest.TestCase):
     # Exercise-1
     def test_squares(self):
-        #self.assertEqual(hw.squares(5), [0, 1, 4, 9, 16])
+        self.assertEqual(hw.squares(5), [0, 1, 4, 9, 16])
         self.assertEqual(hw.squares(1000), [i**2 for i in range(1001)])
         self.assertEqual(hw.squares(10000), [i**2 for i in range(10001)])
         self.assertEqual(hw.squares(0), [i**2 for i in range(1)])
@@ -36,11 +36,11 @@ class TestFunctions(unittest.TestCase):
 
     # Exercise-5
     def test_squares_gen(self):
-        #self.assertEqual(list(hw.squares_gen(5)), [0, 1, 4, 9, 16])
-        self.assertEqual(list(hw.squares_gen(1000)), [i**2 for i in range(1001)])
-        self.assertEqual(list(hw.squares_gen(2000)), [i**2 for i in range(2001)])
-        self.assertEqual(list(hw.squares_gen(0)), [i**2 for i in range(1)])
-        self.assertEqual(list(hw.squares_gen(3000)), [i**2 for i in range(3001)])
+        self.assertEqual(list(hw.squares_gen(5)), [0, 1, 4, 9, 16])
+        self.assertEqual(list(hw.squares_gen(1000)), [i**2 for i in range(1000)])
+        self.assertEqual(list(hw.squares_gen(2000)), [i**2 for i in range(2000)])
+        self.assertEqual(list(hw.squares_gen(0)), [i**2 for i in range(0)])
+        self.assertEqual(list(hw.squares_gen(3000)), [i**2 for i in range(3000)])
 
     # Exercise-6
     def test_odd_squares(self):
@@ -53,10 +53,10 @@ class TestFunctions(unittest.TestCase):
     # Exercise-7
     def test_index_map(self):
         self.assertEqual(hw.index_map("hello"), {'h': 0, 'e': 1, 'l': 3, 'o': 4})
-        self.assertEqual(hw.index_map("a"*1000 + "b"*1000), {char: 999 for char in "ab"})
-        self.assertEqual(hw.index_map("abcde"*200), {char: 999 for char in "abcde"})
+        self.assertEqual(hw.index_map("a"*1000 + "b"*1000), {'a': 999, 'b': 1999})
+        self.assertEqual(hw.index_map("abcde"*200), {char: (999 - index) for index, char in enumerate("edcba")})
         self.assertEqual(hw.index_map("a"), {'a': 0})
-        self.assertEqual(hw.index_map("abcdef"*300), {char: 1799 for char in "abcdef"})
+        self.assertEqual(hw.index_map("abcdef"*300), {char: (1799 - index) for index, char in enumerate("fedcba")})
 
     # Exercise-8
     def test_unique_values(self):
