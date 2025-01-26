@@ -25,9 +25,6 @@ def load_ascii_art(file_path):
                 ascii_art_dict[char] = lines 
     except: 
         print("An exception occurred: wrong style") 
- 
- 
- 
     return ascii_art_dict 
  
  
