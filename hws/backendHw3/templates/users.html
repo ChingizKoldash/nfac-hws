@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список пользователей</title>
+</head>
+<body>
+    <h1>Список пользователей</h1>
+    <table border="1">
+        <tr><th>Имя пользователя</th><th>Полное имя</th></tr>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td><a href="/users/{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
