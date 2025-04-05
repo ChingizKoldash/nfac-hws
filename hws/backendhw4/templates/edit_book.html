@@ -1,0 +1,10 @@
+<h1>Редактировать книгу</h1>
+<form action="/book/{{ book.id }}/edit" method="post">
+  <label>Название: <input type="text" name="title" value="{{ book.title }}" required></label><br>
+  <label>Автор: <input type="text" name="author" value="{{ book.author }}" required></label><br>
+  <label>Год: <input type="number" name="year" value="{{ book.year }}" required></label><br>
+  <label>Страниц: <input type="number" name="total_pages" value="{{ book.total_pages }}" required></label><br>
+  <label>Жанр: <input type="text" name="genre" value="{{ book.genre }}" required></label><br>
+  <button type="submit">Обновить</button>
+</form>
+<p><a href="/book/{{ book.id }}">← Назад к книге</a></p>
