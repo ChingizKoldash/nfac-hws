@@ -58,3 +58,47 @@ def create_book(
     session.commit()
     session.refresh(book)
     return RedirectResponse(url="/books/new", status_code=HTTP_302_FOUND)
+
+
+@app.get("/book/{book_id}/edit", response_class=HTMLResponse)
+def edit_book_form(request: Request, book_id: int, session: Session = Depends(get_session)):
+    book = session.get(Book, book_id)
+    if not book:
+        return HTMLResponse("Not Found", status_code=404)
+    return templates.TemplateResponse("edit_book.html", {"request": request, "book": book})
+
+@app.post("/book/{book_id}/edit", response_class=HTMLResponse)
+def update_book(
+    book_id: int,
+    title: str = Form(...),
+    author: str = Form(...),
+    year: int = Form(...),
+    total_pages: int = Form(...),
+    genre: str = Form(...),
+    session: Session = Depends(get_session)
+):
+    book = session.get(Book, book_id)
+    if not book:
+        return HTMLResponse("Not Found", status_code=404)
+    
+    book.title = title
+    book.author = author
+    book.year = year
+    book.total_pages = total_pages
+    book.genre = genre
+    
+    session.commit()
+    session.refresh(book)
+    
+    return RedirectResponse(url=f"/book/{book.id}", status_code=HTTP_302_FOUND)
+
+@app.post("/book/{book_id}/delete", response_class=HTMLResponse)
+def delete_book(book_id: int, session: Session = Depends(get_session)):
+    book = session.get(Book, book_id)
+    if not book:
+        return HTMLResponse("Not Found", status_code=404)
+    
+    session.delete(book)
+    session.commit()
+
+    return RedirectResponse(url="/book", status_code=HTTP_302_FOUND)
