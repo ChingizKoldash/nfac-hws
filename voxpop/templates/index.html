@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Публичный VoxPop</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    .comment { padding: 10px 0; border-bottom: 1px solid #ccc; }
+    .positive { color: green; }
+    .negative { color: red; }
+    textarea, select, button { width: 100%; margin-top: 10px; }
+    .pagination, .filter-bar { margin-top: 20px; }
+    .pagination a { margin-right: 10px; }
+    small { color: gray; display: block; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Публичный VoxPop</h1>
+
+  <form method="post" action="/submit">
+    <textarea name="text" rows="4" placeholder="Введите ваш комментарий..." required></textarea>
+    <select name="category" required>
+      <option value="positive">Позитивный</option>
+      <option value="negative">Негативный</option>
+    </select>
+    <button type="submit">Отправить</button>
+  </form>
+
+  <div class="filter-bar">
+    <form method="get" action="/">
+      <input type="hidden" name="page" value="1">
+      <label for="filter">Фильтр:</label>
+      <select name="filter" onchange="this.form.submit()">
+        <option value="all" {{ 'selected' if filter == 'all' else '' }}>Все</option>
+        <option value="positive" {{ 'selected' if filter == 'positive' else '' }}>Позитивные</option>
+        <option value="negative" {{ 'selected' if filter == 'negative' else '' }}>Негативные</option>
+      </select>
+    </form>
+  </div>
+
+  <h2>Лента комментариев</h2>
+  {% if comments %}
+    {% for comment in comments %}
+      <div class="comment {{ comment.category }}">
+        {{ "👍" if comment.category == "positive" else "👎" }} {{ comment.text }}
+        <small>{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Комментариев пока нет.</p>
+  {% endif %}
+
+  <div class="pagination">
+    {% if page > 1 %}
+      <a href="/?page={{ page - 1 }}&filter={{ filter }}">← Назад</a>
+    {% endif %}
+    {% if page < total_pages %}
+      <a href="/?page={{ page + 1 }}&filter={{ filter }}">Вперёд →</a>
+    {% endif %}
+  </div>
+</body>
+</html>
