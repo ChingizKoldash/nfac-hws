@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Корзина</title>
+</head>
+<body>
+    <h1>Корзина</h1>
+    <ul>
+        {% for flower in cart_items %}
+            <li>{{ flower.name }} — {{ flower.price }}₽</li>
+        {% endfor %}
+    </ul>
+    
+    <p><strong>Итого: </strong>{{ total }}₽</p>
+    
+    <form action="/cart/checkout" method="post">
+        <button type="submit">Оформить покупку</button>
+    </form>
+</body>
+</html>
