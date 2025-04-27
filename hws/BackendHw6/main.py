@@ -1,224 +1,165 @@
+from fastapi import FastAPI, Depends, HTTPException, status, Form, Request, Response, Cookie
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from jose import jwt, JWTError
+from typing import List
+from uuid import uuid4
+import json
 
-from fastapi import FastAPI, templating,Form,Request,Response,Cookie
-from fastapi.responses import RedirectResponse
-from attrs import define 
-from jose import JWTError, jwt
-import json 
+SECRET_KEY = "secret"
+ALGORITHM = "HS256"
 
+class User(BaseModel):
+    id: int
+    username: str
+    password: str
 
-@define
-class Purchase:
-    id: int = None
-    user_id: int = None
-    flower_id: int = None
+class UserOut(BaseModel):
+    id: int
+    username: str
 
-class PurchasesRepository:
+class Flower(BaseModel):
+    id: int
+    name: str
+    quantity: int
+    price: float
+
+class Purchase(BaseModel):
+    user_id: int
+    flower_id: int
+
+# Репозитории
+class UsersRepository:
     def __init__(self):
-        self.purchases = []
+        self.users: List[User] = []
         self._id_counter = 1
 
-    def add_purchase(self, user_id: int, flower_id: int):
-        purchase = Purchase(
-            id=self._id_counter,
-            user_id=int(user_id),
-            flower_id=int(flower_id)
-        )
+    def save(self, username: str, password: str) -> User:
+        user = User(id=self._id_counter, username=username, password=password)
         self._id_counter += 1
-        self.purchases.append(purchase)
+        self.users.append(user)
+        return user
 
-    def get_by_user(self, user_id: int):
-        return [p for p in self.purchases if p.user_id == int(user_id)]
+    def get_by_username(self, username: str) -> User | None:
+        for user in self.users:
+            if user.username == username:
+                return user
+        return None
 
-@define
-class Flower:
-    id: int = None
-    name: str = "" 
-    quantity: int = 0
-    price: float = 0.0
-
+    def get_by_id(self, user_id: int) -> User | None:
+        for user in self.users:
+            if user.id == user_id:
+                return user
+        return None
 
 class FlowersRepository:
     def __init__(self):
-        self.flowers = [
-            Flower(id=1, name="Rose", quantity=10, price=2.5),
-            Flower(id=2, name="Tulip", quantity=5, price=1.5),
-            Flower(id=3, name="Daisy", quantity=20, price=0.5),
-            Flower(id=4, name="Lily", quantity=8, price=3.0),
-            Flower(id=5, name="Sunflower", quantity=15, price=1.0),
-            Flower(id=6, name="Orchid", quantity=12, price=4.0),
-        ]
+        self.flowers: List[Flower] = []
         self._id_counter = 1
 
-
-    def add_flower(self, name: str, quantity: int, price: float):
-        self._id_counter += 1  
-        flower = Flower(
-            id=self._id_counter,
-            name=name,
-            quantity=quantity,
-            price=price
-        )
+    def add_flower(self, name: str, quantity: int, price: float) -> Flower:
+        flower = Flower(id=self._id_counter, name=name, quantity=quantity, price=price)
+        self._id_counter += 1
         self.flowers.append(flower)
         return flower
 
-
-    def get_all(self):
+    def get_all(self) -> List[Flower]:
         return self.flowers
 
-    def get_by_id(self, flower_id: int):
+    def get_by_id(self, flower_id: int) -> Flower | None:
         for flower in self.flowers:
             if flower.id == flower_id:
                 return flower
         return None
 
-
-@define
-class User:
-    id: int = None
-    login: str = ""
-    password: str = ""
-
-class UsersRepository:
+class PurchasesRepository:
     def __init__(self):
-        self.users = [
-            User(id=1, login="admin", password="admin"),
-            User(id=2, login="user", password="user"),
-        ]
-    
-    def save(self, user: User):
-        user.id = len(self.users)+1
-        self.users.append(user)
+        self.purchases: List[Purchase] = []
 
-    def get_by_login(self,login ) -> User:
-        for user in self.users:
-            if login ==user.login:
-                return user 
-        return None
+    def add_purchase(self, user_id: int, flower_id: int):
+        purchase = Purchase(user_id=user_id, flower_id=flower_id)
+        self.purchases.append(purchase)
 
-    def get_by_id(self, id: int) -> User:
-        for user in self.users:
-            if id ==user.id:
-                return user 
-        return None
-    
+    def get_by_user(self, user_id: int):
+        return [p for p in self.purchases if p.user_id == user_id]
 
+# Инициализация
 app = FastAPI()
-templates = templating.Jinja2Templates("templates")
-repo = UsersRepository()
+users_repo = UsersRepository()
 flowers_repo = FlowersRepository()
 purchases_repo = PurchasesRepository()
 
-@app.get("/registration")
-def get_registration(request: Request):
-    return templates.TemplateResponse("registration.html",{"request": request})
-
-@app.post("/registration")
-def post_registration(
-    request: Request,
-    login: str = Form(),
-    password: str = Form(), 
-):  
-    user = User(login=login, password=password)
-    repo.save(user)
-    return RedirectResponse("/registration",status_code = 303)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
-def create_jwt(user: User):
-    payload = {
-        "user_id": user.id,
-        "login": user.login,
-    }
-    token = jwt.encode(payload,"secret", algorithm="HS256")
-    return token
+def create_access_token(data: dict):
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
-def decode_jwt(token: str):
+def decode_access_token(token: str):
     try:
-        payload = jwt.decode(token,"secret", algorithms=["HS256"])
-        return payload["user_id"]
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
-    except jwt.JWTError:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("user_id")
+    except JWTError:
         return None
 
-@app.get("/login")
-def get_login(request: Request):
-    return templates.TemplateResponse("login.html",{"request": request})
+
+@app.post("/signup")
+def signup(username: str = Form(), password: str = Form()):
+    user_exists = users_repo.get_by_username(username)
+    if user_exists:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    user = users_repo.save(username=username, password=password)
+    return {"message": "User created", "user_id": user.id}
+
 
 @app.post("/login")
-def post_login(
-    request: Request,
-    login: str = Form(),
-    password: str = Form(), 
-):  
-    user = repo.get_by_login(login)
-    if user.password == password:
-        response = Response("Logged in!")
-        token = create_jwt(user)
-        response.set_cookie("token", token)
-        
-        return response
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = users_repo.get_by_username(form_data.username)
+    if not user or user.password != form_data.password:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    access_token = create_access_token({"user_id": user.id})
+    return {"access_token": access_token, "token_type": "bearer"}
 
-    return Response("Invalid credentials", status_code=401)
+# Получить текущего пользователя
+def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    user_id = decode_access_token(token)
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    user = users_repo.get_by_id(int(user_id))
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return user
+
+@app.get("/profile", response_model=UserOut)
+def profile(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
-@app.get("/profile")
-def get_profile(
-    request: Request,
-    token: str = Cookie(),
-):
-    user_id = decode_jwt(token)
-    user = repo.get_by_id(int(user_id))
-    return templates.TemplateResponse(
-        "profile.html",
-        {
-            "request": request,
-            "user": user,
-        }
-    )
+@app.post("/flowers")
+def add_flower(name: str = Form(), quantity: int = Form(), price: float = Form()):
+    flower = flowers_repo.add_flower(name=name, quantity=quantity, price=price)
+    return {"flower_id": flower.id}
 
-@app.get("/flowers")
-def get_flowers(request: Request):
-    flowers = flowers_repo.get_all()
-    return templates.TemplateResponse(
-        "flowers.html",
-        {
-            "request": request,
-            "flowers": flowers,
-        }
-    )
-
-@app.post(path="/flowers")
-def post_flowers(
-    request: Request,
-    name: str = Form(),
-    quantity: int = Form(),
-    price: float = Form(),
-):
-    flower = flowers_repo.add_flower(name, quantity, price)
-    return RedirectResponse("/flowers", status_code=303)
-
+@app.get("/flowers", response_model=List[Flower])
+def get_flowers():
+    return flowers_repo.get_all()
 
 @app.post("/cart/items")
-def add_to_cart(
-    request: Request,
-    flower_id: int = Form(),
-):
+def add_to_cart( request: Request,flower_id: int = Form()):
     cart_cookie = request.cookies.get("cart", "[]")
     try:
         cart = json.loads(cart_cookie)
     except json.JSONDecodeError:
         cart = []
 
-    flower_id = int(flower_id)
     if flower_id not in cart:
         cart.append(flower_id)
 
-    response = RedirectResponse("/flowers", status_code=302)
+    response = Response("Item added to cart")
     response.set_cookie("cart", json.dumps(cart))
     return response
-
 
 @app.get("/cart/items")
 def get_cart(request: Request):
@@ -228,57 +169,40 @@ def get_cart(request: Request):
     except json.JSONDecodeError:
         cart = []
 
-    cart = [int(f) for f in cart]  # гарантируем int
+    cart_items = [flowers_repo.get_by_id(flower_id) for flower_id in cart]
+    total = sum(flower.price for flower in cart_items if flower)
 
-    flowers = flowers_repo.get_all()
-    cart_items = [flower for flower in flowers if flower.id in cart]
-    total = sum(flower.price for flower in cart_items)
+    return {"cart_items": cart_items, "total": total}
 
-    return templates.TemplateResponse(
-        "cart.html",
-        {
-            "request": request,
-            "cart_items": cart_items,
-            "total": total
-        }
-    )
-
-
-@app.post("/cart/checkout")
-def checkout(request: Request):
+# Оформление покупки
+@app.post("/purchased")
+def purchased(request: Request):
     cart_cookie = request.cookies.get("cart", "[]")
     try:
         cart = json.loads(cart_cookie)
     except json.JSONDecodeError:
         cart = []
 
-    user_id = decode_jwt(request.cookies.get("token"))
+    user_id = decode_access_token(request.cookies.get("token"))
     if user_id is None:
-        return Response("Not logged in", status_code=401)
+        raise HTTPException(status_code=401, detail="Not logged in")
 
     for flower_id in cart:
         purchases_repo.add_purchase(user_id, flower_id)
 
-    response = RedirectResponse("/flowers", status_code=302)
-    response.set_cookie("cart", "[]")
+    response = Response("Purchase completed")
+    response.set_cookie("cart", "[]")  # Очищаем корзину
     return response
 
-
-@app.get("/purchases")
-def get_purchases(request: Request):
-    user_id = decode_jwt(request.cookies.get("token"))
+@app.get("/purchased")
+def get_purchased(request: Request):
+    user_id = decode_access_token(request.cookies.get("token"))
     if user_id is None:
-        return Response("Not logged in", status_code=401)
+        raise HTTPException(status_code=401, detail="Not logged in")
 
-    purchases = purchases_repo.get_by_user(int(user_id))
-    flower_ids = [p.flower_id for p in purchases]
-    all_flowers = flowers_repo.get_all()
-    purchased_flowers = [flower for flower in all_flowers if flower.id in flower_ids]
+    purchases = purchases_repo.get_by_user(user_id)
+    purchased_flowers = [flowers_repo.get_by_id(p.flower_id) for p in purchases]
 
-    return templates.TemplateResponse(
-        "purchases.html",
-        {
-            "request": request,
-            "purchased_flowers": purchased_flowers,
-        }
-    )
+    total = sum(flower.price for flower in purchased_flowers if flower)
+
+    return {"purchased_flowers": purchased_flowers, "total": total}
